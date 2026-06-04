@@ -20,13 +20,13 @@ name matches the skill name.
 ## Install
 
 Clone the repo and symlink each skill into your user skills directory so edits
-and `git pull` are live. Set `SKILLS_DIR` to wherever you want the clone:
+and `git pull` are live. Set `SKILLS_REPO` to wherever you want the clone:
 
 ```sh
-SKILLS_DIR="$HOME/git/skills"   # change to taste
+SKILLS_REPO="$HOME/git/skills"   # change to taste
 
-git clone https://github.com/TrimVis/skills.git "$SKILLS_DIR"
-for d in "$SKILLS_DIR"/*/; do
+git clone https://github.com/TrimVis/skills.git "$SKILLS_REPO"
+for d in "$SKILLS_REPO"/*/; do
   ln -sfn "$d" "$HOME/.claude/skills/$(basename "$d")"
 done
 ```
