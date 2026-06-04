@@ -20,15 +20,28 @@ name matches the skill name.
 ## Install
 
 Clone the repo and symlink each skill into your user skills directory so edits
-and `git pull` are live:
+and `git pull` are live. Set `SKILLS_DIR` to wherever you want the clone:
 
 ```sh
-git clone https://github.com/TrimVis/skills.git ~/git/skills
-for d in ~/git/skills/*/; do
-  name=$(basename "$d")
-  ln -sfn "$d" ~/.claude/skills/"$name"
+SKILLS_DIR="$HOME/git/skills"   # change to taste
+
+git clone https://github.com/TrimVis/skills.git "$SKILLS_DIR"
+for d in "$SKILLS_DIR"/*/; do
+  ln -sfn "$d" "$HOME/.claude/skills/$(basename "$d")"
 done
 ```
 
 Skills are discovered automatically by Claude Code and invoked with
 `/<skill-name>` or when their description matches a request.
+
+## Dependencies
+
+The `difit-*` skills drive [**difit**](https://github.com/yoshiko-pg/difit), a
+browser-based git diff viewer, via its `difit` CLI. Install it before using
+those skills:
+
+```sh
+npm install -g difit   # or run on demand with: npx difit
+```
+
+The other skills (`commit`, `squash`, `refactor-prose`) need only `git`.
