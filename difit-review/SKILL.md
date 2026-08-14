@@ -179,7 +179,8 @@ Two or three sentences:
 - Counts: `N must-fix, N suggestion, N question`.
 - Per-reviewer counts and dedup overlap.
 - Any dropped findings (especially `must-fix`), any reviewer that failed to return parseable JSON.
-- Always end with: **`Next: /difit-open <name>` to review in browser**, or **`Next: /difit-resolve <name>` to apply the fixes directly**.
+- Then invoke `/difit-open <name>`. Opening the browser is the default, not an extra step. Skip it only if the user said not to, if difit is not installed, or if no one is at the terminal.
+- If you skip it, end with: **`Next: /difit-open <name>` to review in browser**, or **`Next: /difit-resolve <name>` to apply the fixes directly**.
 
 Example:
 

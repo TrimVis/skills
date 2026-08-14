@@ -65,6 +65,8 @@ Resolution order:
 
 1. **`--port <port>` argument** — verify reachable with `difit comment get --port <port> --format json > /dev/null 2>&1`. Error out if unreachable; don't silently fall back to spawning.
 2. **`port:` field in REVIEW.md frontmatter** (written by a previous `/difit-open` run) — verify reachable the same way. If unreachable, ignore and continue to (3).
+   A reachable instance is not always current — difit serves the diff it was spawned with, so a rebase, a new commit, or a `/difit-resolve` pass leaves it stale.
+   Reuse it only if the frontmatter's `target` is a sha that still matches `git rev-parse --short HEAD`. If the sha moved, or `target` is `working` or `staged`, kill the frontmatter's `pid` and continue to (3).
 3. **Spawn a fresh instance** from the frontmatter's `ref` field.
 
 ### Spawning a fresh instance

@@ -24,9 +24,11 @@ Run in parallel:
 
 Split the working tree into the **smallest number of sensible commits**. Default to one commit. Split only when the changes serve clearly different concerns (e.g. a backend fix + an unrelated frontend tweak + a helm config bump).
 
+Commit everything by default, but the tree often holds work from more than one task. If the user names a task, commit only that work and leave the rest in place. List the paths you left uncommitted.
+
 Do **not**:
 - Split a refactor from the behavior change it enables unless the user asked for that separation.
-- Bundle untracked junk (logs, `.env`, MEDIA_ROOT uploads, cache files) — ask before staging anything suspicious.
+- Bundle untracked junk (logs, `.env`, dotfiles, `*.sqlite3` and other local databases, MEDIA_ROOT uploads, cache files) — ask before staging anything suspicious.
 - Use `git add -A` / `git add .`. Stage explicit paths.
 
 ## Step 3 — Message format

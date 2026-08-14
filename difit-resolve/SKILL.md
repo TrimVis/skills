@@ -13,6 +13,7 @@ Read `REVIEW.md`, pull any new user replies from a running difit (if there is on
 - `name` (optional, positional): which review to resolve. Default `default`.
 - `--port <port>` (optional): difit instance to sync to. If omitted, auto-discover a single running instance.
 - `--no-difit` (optional): skip the difit sync entirely. Useful when you only want to fix from `REVIEW.md` without touching the browser session.
+- `--commented-only` (optional): act only on threads where the user left a reply. Give every other thread status `skipped` with a one-line reason.
 
 ## Paths
 
@@ -36,6 +37,7 @@ If `REVIEW_MD` is missing, error out with `Run /difit-review <name> first`.
 Parse the frontmatter and threads same as `/difit-open` does. Stash `port` (from frontmatter), `base`, `target`, and the parsed thread list (including any prior replies).
 
 A thread is **resolved** when its last message is a Claude reply with status `applied` or `skipped`. Skip resolved threads in Step 3.
+difit stores no resolved flag, so the only signal of user intent is a reply. If the user replied to some threads and left others untouched, say so and ask before you act on the untouched ones.
 
 ## Step 2 — Pull difit state (unless `--no-difit`)
 
