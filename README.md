@@ -17,6 +17,7 @@ name matches the skill name.
 | [`difit-resolve`](difit-resolve/) | Apply fixes from a `REVIEW.md`, sync replies with a running difit instance. |
 | [`refactor-prose`](refactor-prose/) | Iteratively refactor existing prose (policies, copy, docs) in place over multiple turns. |
 | [`comment-cleanup`](comment-cleanup/) | Strip low-value comments and docstrings, fit the survivors to the file's style, then rewrite them in Simplified Technical English. |
+| [`refine-skills`](refine-skills/) | Mine transcripts for how your skills actually behaved, find recurring corrections, propose `SKILL.md` edits one finding at a time. |
 | [`ste-writing`](ste-writing/) | Rewrite prose into ASD-STE100 Simplified Technical English. Two modes — strict for procedures, STE-flavored for general docs. Third-party skill, see [Credits](#credits). |
 
 ## Install
