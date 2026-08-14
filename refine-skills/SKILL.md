@@ -40,6 +40,8 @@ Look for:
 
 Then open the `SKILL.md` and confirm the gap is real. If the skill already says it and was ignored, the fix is wording or placement, not a new rule.
 
+Confirm the fix is buildable before you propose it. A rule that reads state no tool exposes is dead on arrival, so check the CLI, the API, or the file format first. When only part of a finding is mechanizable, propose that part and say which part is not.
+
 Ignore one-off task context (`push-api-2`, `mock-api`). That is the user steering, not the skill failing.
 
 ## Step 4 — Propose
