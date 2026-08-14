@@ -19,17 +19,27 @@ State the file list before editing. If the list is over ~15 files, confirm first
 
 ## The loop
 
-Run phase 1 → 2 → 3 over one file at a time. Then run the whole loop again on that file. Stop when a full pass makes no edit, or after 3 passes. A pass that only reshuffles words is not progress — call it a fixpoint and stop.
+Run phase 1 → 2 → 3 over one file at a time. Then run the whole loop again on that file. Stop after 3 passes, or at a fixpoint. A pass that deletes nothing is a fixpoint only if you can state, for every survivor, the concrete misreading it prevents. If you cannot state it for one, that one goes and the pass continues. A pass that only reshuffles words is not progress.
+
+---
+
+## Your own comments are the primary suspects
+
+If you wrote this code in this session, every comment in it is suspect. You will read your own comment as informative because you remember writing it. What made it feel worth writing was the reasoning you did to *write* the code — that is not the reader's problem. Judge from the code alone and lean on deleting.
 
 ---
 
 ## Phase 1 — Added value
 
-For every comment and docstring, ask: **what does a reader learn here that the code does not tell them?** If the answer is nothing, delete it. If the answer is one clause out of five, keep that clause and delete the rest. Partial trimming is the common case.
+For every comment, run the **deletion test**: delete it, read the surrounding code as a stranger, and name the specific thing you would now get wrong. If you cannot name one, it stays deleted. "It's useful context", "it's a why", "it helps a newcomer" are not answers — the answer is a concrete misreading.
+
+Judge clause by clause, not comment by comment. A comment that passes the test on its second sentence does not keep its first.
 
 ### Delete
 
 - **Restatement.** `// increment the counter` over `counter++`. A docstring summary that re-spells the function name.
+- **Lead-in restatement.** A first sentence naming what the code is, followed by the sentence carrying the real fact. Delete the lead-in and keep the fact. Do not merge them into one smoother sentence — that is how restatement survives a pass.
+- **Re-derivable motivation.** "This is big", "for the record", "sorted so it reads first". If the reader can reconstruct the reason from the code in a few seconds, it is not a why.
 - **Signature echo.** `:param user_id: the user id`, `@returns {User} the user`. Types and names already say it. Keep a param line only when it adds a unit, a range, an ownership rule, or a non-obvious default.
 - **Caller-directed narration.** "Callers should catch this so they can retry", "raises so that the scheduler in queue.py can back off". The exception type and message carry this. A function does not document its callers.
 - **Tutorial comments.** Explaining what `map`, a context manager, or a null check does.
@@ -40,7 +50,7 @@ For every comment and docstring, ask: **what does a reader learn here that the c
 
 ### Keep
 
-- **Why, not what.** Workarounds, upstream bugs (with the link), spec or RFC references, ordering constraints, performance reasons, deliberate deviations from the obvious implementation.
+- **Why, not what** — and only a why that points *outside this function*: library behaviour, an upstream bug (with the link), another process or thread, a spec or RFC, an ordering constraint, an interaction that looks wrong and is not. If the whole story is visible in the file, the code is the story.
 - **Contract facts absent from the types.** Units, ranges, mutation, thread-safety, idempotency, lifetime and ownership, complexity, side effects.
 - **Traps.** Code that looks like a bug and is not. This is the highest-value comment in any file.
 - **Tool directives and legal text.** `# noqa`, `# type: ignore`, `@ts-expect-error`, `eslint-disable`, `#pragma`, SPDX headers, license blocks, copyright.
@@ -62,9 +72,10 @@ When a project enforces docs on public symbols (`pydocstyle`, `ruff` D rules, `j
 
 ## Phase 2 — Fit the file
 
-Phase 1 judges each comment alone. Phase 2 judges the set. Read the whole file, and one or two sibling files, and align:
+Phase 1 judges each comment alone. Phase 2 judges the set. It can only delete or shorten — it can never save a comment Phase 1 condemned. Read the whole file, and one or two sibling files, and align:
 
-- **Density.** After trimming, is one private helper the only documented symbol in the file? Either drop that docstring or accept the file's real convention. Do not leave an outlier.
+- **Density.** Only ever a reason to delete. A missing comment is not an outlier; a lone documented private helper is.
+- **Symmetry is not value.** "The sibling has one" says nothing about whether yours earns its place. If the neighbours are filler, the neighbours are what this skill exists to remove — delete yours and leave theirs alone, since they are out of scope.
 - **Form.** One convention per file: Google or numpy or reST, `//` or `///`, sentence case or lowercase, trailing period or none, imperative ("Return the user") or third person ("Returns the user"). Match what the majority of the surviving comments already do.
 - **Weight.** If everything else in the file is a one-line comment, a surviving three-paragraph block is still too much. Compress it.
 - **Placement.** Keep the file's habit for above-the-line versus trailing comments. Do not move a comment to a new line to satisfy taste.
@@ -106,7 +117,7 @@ After each file:
 
 ## Report
 
-Per file: comments removed, comments trimmed, comments kept, and passes taken. Then list, in one line each, any comment you kept that a reader might expect to be gone, with the reason. Do not commit.
+Per file: comments removed, comments trimmed, comments kept, and passes taken. Then list **every** survivor, one line each, naming the concrete misreading it prevents. A survivor you cannot justify in one concrete line should not have survived — go back and delete it. Do not commit.
 
 ## Don'ts
 
