@@ -16,6 +16,8 @@ name matches the skill name.
 | [`difit-open`](difit-open/) | Open a `REVIEW.md` in difit's browser UI for interactive review. |
 | [`difit-resolve`](difit-resolve/) | Apply fixes from a `REVIEW.md`, sync replies with a running difit instance. |
 | [`refactor-prose`](refactor-prose/) | Iteratively refactor existing prose (policies, copy, docs) in place over multiple turns. |
+| [`comment-cleanup`](comment-cleanup/) | Strip low-value comments and docstrings, fit the survivors to the file's style, then rewrite them in Simplified Technical English. |
+| [`ste-writing`](ste-writing/) | Rewrite prose into ASD-STE100 Simplified Technical English. Two modes — strict for procedures, STE-flavored for general docs. Third-party skill, see [Credits](#credits). |
 
 ## Install
 
@@ -44,4 +46,16 @@ those skills:
 npm install -g difit   # or run on demand with: npx difit
 ```
 
+`comment-cleanup` calls `ste-writing` in its last phase. Both are in this repo,
+so the install loop above covers it.
+
 The other skills (`commit`, `squash`, `refactor-prose`) need only `git`.
+
+## Credits
+
+`ste-writing` is the work of Ege Chelebi
+([@woosal1337](https://github.com/woosal1337)), published with the video series
+episode "The Cure for AI Slop":
+<https://github.com/woosal1337/blog/blob/main/videos/ep01-the-cure-for-ai-slop/ste-writing-skill.md>
+
+Every other skill in this repo is original work.
