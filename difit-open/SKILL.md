@@ -24,8 +24,9 @@ If `REVIEW_MD` doesn't exist, error out with `Run /difit-review <name> first`.
 
 ## Verified facts about difit
 
-- `difit <ref> --no-open --keep-alive --port <N>` starts a server bound to port `<N>` (difit auto-shifts if occupied — pick a free port up front and that doesn't happen). No `--background` needed when you control the port; see Step 2.
-- `difit comment add --type thread '<json-array>' --port <port>` works for pushing new threads (this is what you use here).
+- Difit argument order: `difit [commit-ish] [compare-with]` where `commit-ish` is the **new/target** side and `compare-with` is the **old/base** side. So to show feature branch (HEAD) vs master: `difit HEAD master` — NOT `difit master` (that would put master as the new side and show the diff in reverse).
+- `difit <target> <base> --no-open --keep-alive --port <N>` starts a server bound to port `<N>` (pick a free port up front — difit doesn't auto-shift when `--port` is set). No `--background` needed when you control the port; see Step 2.
+- `difit comment add --port <port> '<json-array>'` pushes new threads. There is no `--type` flag — omit it entirely.
 - `difit comment add --type reply` is a silent no-op. Don't use it.
 - The frontend persists full thread history (OP + replies) via `POST http://localhost:<port>/api/comments?base=<base>&target=<target>` with the **whole** threads payload. Use this when you need to seed prior replies, not just the OP.
 - `difit comment get --format json [--port <port>]` reads the current state. With no `--port`, auto-discovers a single running instance.
@@ -80,14 +81,16 @@ done
 [[ -n "$PORT" ]] || { echo "no free port found"; exit 1; }
 ```
 
-Map the frontmatter `ref` to difit args:
+Map the frontmatter `ref` and resolved `base`/`target` SHAs to difit args. The universal pattern is `difit $TARGET $BASE` — target (new) first, base (old) second:
 
 | frontmatter `ref` | difit invocation |
 |---|---|
-| `<a>..<b>` | `difit <b> <a> --no-open --keep-alive --port $PORT` |
-| `<rev>` | `difit <rev> --no-open --keep-alive --port $PORT` |
+| `<a>..<b>` | `difit $TARGET $BASE --no-open --keep-alive --port $PORT` (i.e. `difit <b> <a>`) |
+| `<rev>` | `difit $TARGET $BASE --no-open --keep-alive --port $PORT` (i.e. `difit HEAD <rev>`) |
 | `working` / `.` | `difit . --no-open --keep-alive --port $PORT` |
 | `staged` | `difit staged --no-open --keep-alive --port $PORT` |
+
+Always prefer using the resolved SHA values from the REVIEW.md frontmatter (`base` / `target`) rather than symbolic names — this avoids ambiguity if branches have moved since the review was generated.
 
 Spawn via the Bash tool with **both** `run_in_background: true` AND `dangerouslyDisableSandbox: true`. Sandbox-on kills the server; foreground blocks the skill. You don't need the spawn call's output at all — port is already known.
 

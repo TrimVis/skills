@@ -1,12 +1,12 @@
 ---
 name: difit-review
-description: Parallel multi-model code review. Spawns Opus, Sonnet, and Haiku reviewers in parallel — each specialised for the analysis dimensions that model is strongest at — then writes the merged findings to REVIEW.md under the Claude project dir. REVIEW.md is the authoritative review state; difit is a separate, optional viewer (use /difit-open after).
+description: Parallel multi-model code review. Spawns Opus, Sonnet, Fable, and Haiku reviewers in parallel — each specialised for the analysis dimensions that model is strongest at — then writes the merged findings to REVIEW.md under the Claude project dir. REVIEW.md is the authoritative review state; difit is a separate, optional viewer (use /difit-open after).
 user-invocable: true
 ---
 
 # Difit Review Skill
 
-Three reviewers, three models, one diff. Findings get merged, deduped, and written to a per-review `REVIEW.md`. **This skill never touches difit** — that's `/difit-open`'s job.
+Four reviewers, four models, one diff. Findings get merged, deduped, and written to a per-review `REVIEW.md`. **This skill never touches difit** — that's `/difit-open`'s job.
 
 ## Arguments
 
@@ -57,9 +57,9 @@ Write the unified diff once to `$TMPDIR/difit-review-diff-<name>.patch`.
 
 Read root `CLAUDE.md` plus any `CLAUDE.md` in directories the diff touches. Pass these to the reviewers as project rules.
 
-## Step 2 — Spawn three reviewers in parallel
+## Step 2 — Spawn four reviewers in parallel
 
-Send all three `Agent` calls in one message. Each gets the patch path, the changed file list, and the CLAUDE.md content. Each returns a strict JSON array — no prose, no markdown fences. Schema:
+Send all four `Agent` calls in one message. Each gets the patch path, the changed file list, and the CLAUDE.md content. Each returns a strict JSON array — no prose, no markdown fences. Schema:
 
 ```json
 [
@@ -97,19 +97,39 @@ Categories: `security`, `lifecycle`, `logic`.
 
 Categories: `contract`, `dataflow`, `api`.
 
-### Reviewer 3 — Haiku (`model: haiku`)
+### Reviewer 3 — Fable (`model: fable`)
 
 `subagent_type: general-purpose`. Focus:
-- Missing imports, undefined references, typos.
-- Unused imports / variables / functions.
-- Off-by-one, wrong operator, swapped args, dead code.
-- Mechanical CLAUDE.md style rules (line length, banned APIs, etc.).
+- **Correctness**: plain logic errors, wrong operator or condition, off-by-one, inverted guard, wrong variable used, code that can't do what its name or docstring claims.
+- **Edge cases**: empty collections, absent optional fields, duplicate or repeated calls, encoding, zero-length and very large inputs, first-run vs re-run, idempotency.
+- **Error handling**: over-broad or misplaced `except`, swallowed exceptions, exceptions used as control flow, error paths that leave state inconsistent, failures that surface as a misleading status or log line.
+- **Resources**: files, temp dirs, HTTP clients/sessions, DB connections, tasks created but never awaited or cleaned up, unbounded growth.
 
-Categories: `mechanical`, `naming`, `style`. Tell Haiku to skip anything needing more than local reasoning — Opus/Sonnet catch the rest.
+Categories: `correctness`, `edge-case`, `error-handling`, `resource`.
+
+Fable overlaps Opus on lifecycle and Sonnet on data flow by design — each model surfaces different instances. Don't narrow the prompt to avoid overlap; Step 3 dedupes.
+
+### Reviewer 4 — Haiku (`model: haiku`)
+
+`subagent_type: general-purpose`. Focus exclusively on **comments and string literals** — no code logic, no imports, no style rules.
+
+**Comments** (inline `//`, `#`, `/* */`, etc. — not docstrings):
+- Flag comments that are longer or more elaborate than the code they describe warrants.
+- Flag comments that restate what the code obviously does ("increment counter by 1").
+- Flag comments that are outdated, contradictory, or misleading relative to the surrounding code.
+
+**String literals and user-facing text** (error messages, log strings, UI labels, any quoted text):
+- Grammar and typos.
+- Unclear or awkward phrasing — would a reader understand this at a glance?
+- Inconsistent terminology with nearby strings.
+
+Skip docstrings entirely. Skip anything that requires understanding code logic. If in doubt, omit.
+
+Categories: `comments`, `text`.
 
 ## Step 3 — Aggregate and filter
 
-1. Parse each reviewer's JSON. If one fails to parse, log it and continue with the other two.
+1. Parse each reviewer's JSON. If one fails to parse, log it and continue with the others.
 2. Drop any finding whose `file` isn't in the diff (reviewers occasionally hallucinate paths).
 3. Validate line numbers: `wc -l <file>` for each touched file; drop findings with out-of-range `line` / `end_line`. **If a `must-fix` was dropped, surface it in the final report.**
 4. Dedupe: same `file` + line within ±2 AND same root issue → keep the highest-severity / most-specific version, prefix the body with `[opus + sonnet]` (or whichever pair).
@@ -150,7 +170,7 @@ Rules:
 - Threads ordered by file, then line.
 - The body of the OP is everything between the bold attribution line and the `---` separator (or next `## `). No replies yet on a fresh write.
 - Severities map: `must-fix`, `suggestion`, `question`.
-- Reviewer attribution: `opus`, `sonnet`, `haiku`, or `opus + sonnet` etc.
+- Reviewer attribution: `opus`, `sonnet`, `fable`, `haiku`, or `opus + sonnet`, `opus + sonnet + fable` etc.
 
 ## Step 5 — Report
 
@@ -164,7 +184,7 @@ Two or three sentences:
 Example:
 
 > Wrote 11 findings to `~/.claude/projects/-home-trim-...-/reviews/default/REVIEW.md` (4 must-fix, 6 suggestion, 1 question).
-> Reviewers: opus 4 / sonnet 6 / haiku 3 — 1 dedup overlap. Dropped one haiku suggestion at `import_checkpoint.py:944` (file is 132 lines).
+> Reviewers: opus 4 / sonnet 6 / fable 5 / haiku 3 — 1 dedup overlap. Dropped one haiku suggestion at `import_checkpoint.py:944` (file is 132 lines).
 > Next: `/difit-open default` to review in browser.
 
 ## Fallback
@@ -173,7 +193,7 @@ If `difit` is not installed: this skill **still runs**. It writes `REVIEW.md` ei
 
 ## Notes on model selection
 
-- Pass `model: opus | sonnet | haiku` explicitly on the Agent call.
+- Pass `model: opus | sonnet | fable | haiku` explicitly on the Agent call.
 - If a model errors, skip that reviewer and call it out in the report — don't fail the whole run.
 - Do not pass `model: haiku` for the Sonnet role; Haiku can't reliably grep callers.
 
